@@ -1,0 +1,2 @@
+Function,Begin,Limit Power
+Thu Jan 20 18:11:00 2024,Self-Consumption
