@@ -170,17 +170,16 @@ for j in range(0,math.floor(len(PCon_total)/TimeStep)):
 for j in range(0,math.floor(len(PPV_total)/TimeStep)):
     PPV.append(float(PPV_total[j*TimeStep]))
 
-Threshold = len(PCon)
-
 
 
 """
 SMA1.sendP(int(PPV[i]))
 s2.send(struct.pack("i",PbatRq))
 """
-
 i = 0
+Threshold = len(PCon)
 time.sleep(3)
+f = open('History.txt','w')
 
 while i < Threshold-1:
 #while time.ctime(time.time()) < TimeToEnd:
