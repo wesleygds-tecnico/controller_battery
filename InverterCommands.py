@@ -53,6 +53,9 @@ class Modbus(Thread):
     def sendP(self,NewPower): #Send and set power
         self.c.write_multiple_registers(40212,[0,NewPower]) #Active Power Configuration, U32, FIX0, RW, W, 0W to 5050W, Active power limitation P active power configuration
 
+    def sendPPer(self,NewPower): #Send and set power
+        self.c.write_multiple_registers(41075,[0,NewPower/870]) #Active Power Configuration, U32, FIX0, RW, W, 0W to 5050W, Active power limitation P active power configuration        
+
     def setStopInverter(self):
         self.c.write_multiple_registers(40009,[0,381]) #Funcões usadas na escrita 381 -> menos significativo 0 -> mais significataivo (função STOP --> ver no mapa de registroos)
         #2, U32, TAGLIST, RW, 295: MPP (Mpp) | 381: Stop (Stop) | 443: Constant voltage (VolDCConst), 1, Operational Condition

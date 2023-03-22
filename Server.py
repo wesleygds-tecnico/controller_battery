@@ -19,7 +19,7 @@ from matplotlib.backends.backend_tkagg import (
 # Implement the default Matplotlib key bindings.
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
-
+                                                        
 ###-------------------------------------------------------------------###
 ##------------------- Executes the plot animation ---------------------##
 ###-------------------------------------------------------------------###
@@ -83,10 +83,10 @@ def config_tkinter():
 ###-------------------------------------------------------------------###
 
 def _quit(root):
-    s.close()
     root.quit()     # stops mainloop
-    root.destroy()  # this is necessary on Windows to prevent
-                    # Fatal Python Error: PyEval_RestoreThread: NULL tstate
+    root.destroy()
+    s.close()       #this is necessary on Windows to prevent
+                    #Fatal Python Error: PyEval_RestoreThread: NULL tstate
                         
 
 ###-------------------------------------------------------------------###
