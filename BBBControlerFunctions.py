@@ -15,8 +15,6 @@ from datetime import datetime
 
 #from mqtt_SSOP import clientSubscriber
 
-
-
 # %% 
 
 ###--------------------------------------------------###
