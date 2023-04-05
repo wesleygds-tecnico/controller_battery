@@ -29,6 +29,7 @@ class Modbus(Thread):
                 self.dummy = True
                 self.smadict['status'] = "Not Connected"
         print("Connection Done")
+        self.c.write_multiple_registers(40210,[0,1077]) #Altera o operating mode
 
     def __del__(self): #Destructor, close port when serial port instance is freed.
         print('ok')

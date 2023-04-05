@@ -7,11 +7,12 @@ import time
 import math
 import struct
 from InverterCommands import Modbus
-"""
-import DataBase.Biblioteca.clientSubscriber as subscriber
+from SSOPInvertorDataBase.clientSubscriber import subscribe
 import threading
-import gCentralComponentDB as DB
+from SSOPInvertorDataBase import gCentralComponentDB as DB
 from datetime import datetime
+
+
 
 #from mqtt_SSOP import clientSubscriber
 
@@ -21,11 +22,6 @@ from datetime import datetime
 ##------------------- MQTT Connection ----------------##
 ###--------------------------------------------------###
 
-CloudOrders = {
-    "lastMessage": "Not modified",
-    "id": 0
-}
-
 ReqTime = []
 ReqService = []
 TimeStep = 1
@@ -33,82 +29,59 @@ SoCMin = 40
 
 date = datetime.now().isoformat()
 
-data = {
-    'Type_Of_Service' : "date",
-    'Type_Of_Activation' : date,
-    'Price' : date,
-    'Price_Min' : date,
-    'Price_Max' : date,
-}
+#data ={
+#    "Service": "Self-Consumption",
+#    "time":  date,
+#    "Begin": date,
+#    "PCon": 1,
+#    "PPV": 1,
+#    "PReqInv": 1,
+#    "PMeaInv": 1,
+#    "PReqBat": 1,
+#    "PMeaBat": 1,
+#    "SoC": 1,
+#    "PDMax": 1,
+#    "PCMax": 1,
+#}
 
-data2 ={
-    'meter_ID' : 1,
-    'measure_ID' : 1,
-    'timestamp' : date,
-    'type' : 1,
-    'n_Phases' : 1,
-    'chanel' : 1,
-    'unit' : 1,
-    'multi_Factor' : 1,
-    'measure_1' : 1,
-    'measure_2' : 1,
-    'measure_3' : 1,
-}
-
-def Initialize(CloudOrders, f):
+def Initialize():
     print("%--------------- Initialization ------------------%")
     #Header = ['Function',',','Begin',',','Limit Power']
     #f.writelines(Header)
     #f.write("\n")
-    subThread = threading.Thread(target=lambda: subscriber.subscribe('toAsset/123',CloudOrders,'0'))
+    subThread = threading.Thread(target=lambda: subscribe(topic= 'toAsset/123', clientID = '0'))
     subThread.start()
     print("Thread initiated")
 
     #print("Initialization of Orders DBCLC Concluded")
-    time.sleep(5)
-    print("CloudOrders: ", CloudOrders)
 
     print("%--------------- Initialization ------------------%")
     print("\n")
 
     print("%--------------- Writing on DataBase ------------------%")
 
-    DB.newPayload(topic = "pVGeneratorData", iotDeviceID = "iotDeviceID", dataType = "dataType", data = data2) 
+    #DB.newPayload(topic = "inverterData", iotDeviceID = "iotDeviceID", dataType = "inverterData", data = data) 
     
     #DataType identificação da tabela
     #Mensagem do MQTT
     #
 
-    A = DB.listDataByID(1)
-    B = DB.row2dict(A)
-    print(B)
+    CloudOrder = DB.table2dict(DB.listDataByDataType("inverterData"))
+    print(CloudOrder) #Em tese, it should return a dict with information to begin a new control loop
 
-    A = DB.listDataByTopic("pVGeneratorData")
-    B = DB.table2dict(A)
-    print(B)
+    print("%--------------- Writing on DataBase ------------------%")     
 
-    print("%--------------- Writing on DataBase ------------------%")        
-    return f, #ConnectCloud(CloudOrders, f)
+#    while True:
+#        DB.table2dict(DB.listData())
+#        time.sleep(10)
 
+    return CloudOrder, InitializeInv(CloudOrder, TimeStep, SoCMin)
+
+#%%
+"""
 def ConnectCloud(CloudOrders,f):
     print("%--------------- Connecting to Cloud ------------------%")
 
-    CloudOrders0 = CloudOrders
-    #clientSubscriber.subscribe('toAsset/123',CloudOrders,'0')
-    print("Connected to Cloud")
-    CloudOrders = {
-        'Begin': 'Thu Jan 20 18:11:00 2023',
-        'Function': 'Self-Consumption',
-        'Limit Power': ' '
-    }
-    print(CloudOrders)
-    if CloudOrders0 != CloudOrders:
-        CloudOrders_write = [CloudOrders["Begin"], ",", CloudOrders["Function"], ",", CloudOrders["Limit Power"]]
-        f.writelines(CloudOrders_write)
-        #f.writelines(str(CloudOrders))
-        f.writelines("\n")
-        f.close()
-        print("New Order Received")
     print("%--------------- Connecting to Cloud ------------------%")
 
     return CloudOrders, CloudGetOrder()
@@ -140,18 +113,18 @@ def CloudGetOrder():
 ##------------------ Modbus Con§§§nection ---------------##
 ###--------------------------------------------------###
 
-def InitializeInv(Function, TimeStep, SoCMin, Begin):
+def InitializeInv(CloudOrder, TimeStep, SoCMin):
     print("Connecting to inversor")
     SMA1 = Modbus("169.254.12.3")
     print("Connected to the Inversor")
     
-    return SMA1, InitializePC(Function, SMA1, TimeStep, SoCMin, Begin)
+    return InitializePC(CloudOrder, SMA1, TimeStep, SoCMin)
 
 ###--------------------------------------------------###
 ##------------- TCP Real Time Connection PC ----------##
 ###--------------------------------------------------###
 
-def InitializePC(Function, SMA1, TimeStep, SoCMin, Begin):
+def InitializePC(CloudOrder, SMA1, TimeStep, SoCMin):
 
     #Initialization Code
     print("Connecting to the PC")
@@ -168,13 +141,13 @@ def InitializePC(Function, SMA1, TimeStep, SoCMin, Begin):
     ConnPC, ender = s0.accept()
     print("PC connection stablished")
 
-    return ConnPC, ender, s0, InitializeBat(Function, SMA1, ConnPC, TimeStep, SoCMin, Begin)
+    return ConnPC, ender, s0, InitializeBat(CloudOrder, SMA1, ConnPC, TimeStep, SoCMin)
 
 ###--------------------------------------------------###
 ##------------ TCP Real Time Connection Battery ------------##
 ###--------------------------------------------------###
 
-def InitializeBat(Function, SMA1, ConnPC, TimeStep, SoCMin, Begin):
+def InitializeBat(CloudOrder, SMA1, ConnPC, TimeStep, SoCMin):
 
     HOST = '169.254.12.242'
     PORT = 2001
@@ -202,14 +175,14 @@ def InitializeBat(Function, SMA1, ConnPC, TimeStep, SoCMin, Begin):
 
     print('Conexao aceita')    
 
-    return s2, PDMax, PCMax, InitializeData(Function, ConnPC, SMA1, s2, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin)
+    return s2, PDMax, PCMax, InitializeData(CloudOrder, ConnPC, SMA1, s2, PDMax, PCMax, PbatRq, TimeStep, SoCMin)
 
 
 ###--------------------------------------------------###
 ##------------- Get data from time series ------------##
 ###--------------------------------------------------###
 
-def InitializeData(Function, ConnPC, SMA1, s2, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin):
+def InitializeData(CloudOrder, ConnPC, SMA1, s2, PDMax, PCMax, PbatRq, TimeStep, SoCMin):
     print("Obtaining data from time series databases")
     f = open('Consume.txt','r')
     lines = f.readlines()
@@ -253,13 +226,13 @@ def InitializeData(Function, ConnPC, SMA1, s2, PDMax, PCMax, PbatRq, TimeStep, S
     Threshold = len(PCon_total)
 
     print("Data ready to use")    
-    return PCon, PPV, Threshold, InitizalizeHistory(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin)
+    return PCon, PPV, Threshold, InitizalizeHistory(CloudOrder, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin)
 
 ###--------------------------------------------------###
 ##------------- Begin BBB history ------------##
 ###--------------------------------------------------###
 
-def InitizalizeHistory(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin):
+def InitizalizeHistory(CloudOrder, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin):
 
     print("Preparing Control History")
 
@@ -273,11 +246,13 @@ def InitizalizeHistory(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, Pbat
 
     print("History ready to use")
     
-    return History, SelectService(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin)
+    return History, SelectService(CloudOrder, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin)
 
 
 #def SelectService(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, SoCMin, TimeStep, Begin):
-def SelectService(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin):
+def SelectService(CloudOrder, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin):
+    Function = CloudOrder["Service"]
+    Begin = CloudOrder["Begin"]
     print(Function)
     print("Selecting Service out of Cloud order")
     if Function == 'Self-Consumption':
@@ -303,7 +278,7 @@ def SelfConsumption(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq,
 
     #SMA1.sendP(int(PPV[i]))
     #print("request de potência enviado ao inv")
-    s2.send(struct.pack("i",PbatRq))
+    s2.send(struct.pack("<i",PbatRq))
 
     i = 0
     #time.sleep(3)
@@ -397,14 +372,29 @@ def SelfConsumption(Function, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq,
         #SMA1.newPowerSetPoint(int(PPV[i]))
         print("request de potência enviado ao inv")
         print("Potencia enviada a bateria: ", -PbatRq)
-        s2.send(struct.pack("i", -int(PbatRq)))
+        s2.send(struct.pack("<i", -int(PbatRq)))
 
-        time.sleep(5)
-        print("Adding zero value")
-        s2.send(struct.pack("<i", int(0)))
+        data = {
+            'id' : 'BBB',
+            'Service' : Function,
+            'time' : datetime.now().isoformat(),
+            'Begin' : Begin,
+            'PCon' : PCon[i],
+            'PPV' : PPV[i],
+            'PReqInv' : PReqInv,
+            'PMeaInv' : float(InvStatus['Power_Active']),
+            'PReqBat' : PReqBat,
+            'PMeaBat' : -int(PbatRq),
+            'SoC' : SoC,
+            'PCMax' : PCMax,
+            'PDMax' : PDMax
+        }
 
-        #AccessOrder(Function, Function0, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin, Begin0)
-        time.sleep(5)
+        DB.newPayload("inverterData", "iotDeviceID", , data)
+
+        AccessOrder(Function, Function0, ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin, Begin0)
+
+        time.sleep(3)
     f.close()
 
 def PeakShaving(ConnPC, SMA1, s2, PPV, PCon, PDMax, PCMax, PbatRq, TimeStep, SoCMin, Begin):

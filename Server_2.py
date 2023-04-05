@@ -53,6 +53,7 @@ def animate(i,axs):
 ###-------------------------------------------------------------------###
 ##--------------------- Execute the program screen --------------------##
 ###-------------------------------------------------------------------###
+"""
 
 def config_tkinter():
     root = ctk.CTk()
@@ -68,14 +69,14 @@ def config_tkinter():
     combobox.place(x=250, y=725)
     combobox.set("Self-Consumption")  # set initial value
 
-    """
-    dialog = ctk.CTkInputDialog(text="Type in a number:", title="Test")
-    print("Number:", dialog.get_input())
+    
+    #dialog = ctk.CTkInputDialog(text="Type in a number:", title="Test")
+    #print("Number:", dialog.get_input())
 
 
-    button = ctk.CTkButton(master=root, text="Open Dialog")
-    button.place(x=50, y=725)
-    """
+    #button = ctk.CTkButton(master=root, text="Open Dialog")
+    #button.place(x=50, y=725)
+    
     button.place(x=50, y=725)
     return root
 
@@ -89,7 +90,7 @@ def _quit(root):
     s.close()       #this is necessary on Windows to prevent
                     #Fatal Python Error: PyEval_RestoreThread: NULL tstate
                         
-
+"""
 ###-------------------------------------------------------------------###
 ##---------------------- Write data to the history --------------------##
 ###-------------------------------------------------------------------###
@@ -274,7 +275,7 @@ if __name__ == "__main__":
 
         connection_handler = threading.Thread(target=handle_connection, args=(s,file_name,history_header))
         connection_handler.start()
-        root = config_tkinter()        
+        #root = config_tkinter()        
     
         x_time = []
         
@@ -294,8 +295,8 @@ if __name__ == "__main__":
 
         axs = axs.flatten()
 
-        plotcanvas = FigureCanvasTkAgg(fig, root)
-        plotcanvas.get_tk_widget().place(x=-125, y=-75)
+        #plotcanvas = FigureCanvasTkAgg(fig, root)
+        #plotcanvas.get_tk_widget().place(x=-125, y=-75)
         
-        ani_1 = animation.FuncAnimation(fig, animate, interval=4400,fargs=(axs,))
-        root.mainloop()
+        ani_1 = animation.FuncAnimation(fig, animate, interval=2400,fargs=(axs,))
+        #root.mainloop()

@@ -1,4 +1,4 @@
-import BBBControlerFunctions_2
+import BBBControlerFunctions_3
 
 f = open('CloudOders.txt','w')
 
@@ -11,13 +11,14 @@ ReqTime = []
 ReqService = []
 TimeStep = 1
 SoCMin = 40
+SoCMax = 40
 Period = 30
 Function = "Self-Consumption"
 Begin = "A"
 
 try:
     #BBBControlerFunctions.Initialize(CloudOrders, f)
-    BBBControlerFunctions_2.InitializeInv(Function, TimeStep, SoCMin, Begin)
+    BBBControlerFunctions_3.Initialize(TimeStep, SoCMin, SoCMax)
 except:
     #BBBControlerFunctions.Initialize(CloudOrders, f)
-    BBBControlerFunctions_2.InitializeInv(Function, TimeStep, SoCMin, Begin)
+    BBBControlerFunctions_3.Initialize(TimeStep, SoCMin, SoCMax)

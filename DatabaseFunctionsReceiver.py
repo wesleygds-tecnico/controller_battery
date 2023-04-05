@@ -1,21 +1,49 @@
 # %% 
 
 # some_file.py
-import socket
-import json
-import time
-import math
-import struct
-from InverterCommands import Modbus
-import DataBase.Biblioteca.clientSubscriber as subscriber
-import threading
-import gCentralComponentDB as DB
+import requests
 from datetime import datetime
+from gCentralComponentDB import newPayload
+from InverterDB
 
-#from mqtt_SSOP import clientSubscriber
+#URL_BASE = "http://127.0.0.1:8000/"
+
+URL_BASE = "http://www.google.com"
+
+URL_Requets_pvge2 = "API/data"
+URL_Requets_pvge = "API/data/dataType/pVGeneratorData"
+
+#x = requests.get( URL_BASE + URL_Requets_pvge  )
+x = requests.get( URL_BASE )
+#y = requests.get( URL_BASE + URL_Requets_pvge2  )
+
+print(x.status_code)
+print(x.text)
+#print(y.status_code)
+#print(y.text)
+
+data = {
+    'Service': "Self_Consumption",
+    'time': datetime.now().isoformat(),
+    'Begin': datetime.now().isoformat(),
+    'PCon': 1,
+    'PPV': 1,
+    'PReqInv': 1,
+    'PMeaInv': 1,
+    'PReqBat': 1,
+    'PMeaBat': 1,
+    'SoC': 1,
+    'PCMax': 1,
+    'PDMax': 1,
+}
+
+
+newPayload("toAsset/123", "123", "inverterData", data)
+
+
 
 # %% 
-
+"""
 ###--------------------------------------------------###
 ##------------------- MQTT Connection ----------------##
 ###--------------------------------------------------###
@@ -124,4 +152,8 @@ print(A)
 B = DB.row2dict(A)
 print(B)
 
-print("%--------------- Writing on DataBase ------------------%")        
+print("%--------------- Writing on DataBase ------------------%")
+"""
+
+
+

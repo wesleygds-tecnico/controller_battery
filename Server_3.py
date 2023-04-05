@@ -26,7 +26,7 @@ from matplotlib.figure import Figure
 ###-------------------------------------------------------------------###
 
 def animate(i,axs):
-    global x_time, y_PCon, y_PPV, y_Pbat, y_PG, y_SoC, y_SoCMin
+    global x_time, y_PCon, y_PPV, y_PInv, y_Pbat, y_PG, y_SoC, y_SoCMin
     try:
         with open("HistoryServer.csv") as f:
             ncols = len(f.readline().split(','))
@@ -39,16 +39,17 @@ def animate(i,axs):
         x_time = np.append(x_time, np.array(logger[0]))  
         y_PCon = np.append(y_PCon, np.array(logger[1]))
         y_PPV = np.append(y_PPV, np.array(logger[2]))
-        y_Pbat = np.append(y_Pbat, np.array(logger[3]))
-        y_PG = np.append(y_PG, np.array(logger[4]))        
-        y_SoC = np.append(y_SoC, np.array(logger[5]))
-        y_SoCMin = np.append(y_SoCMin, np.array(logger[6]))
+        y_PInv = np.append(y_PInv, np.array(logger[3]))
+        y_Pbat = np.append(y_Pbat, np.array(logger[4]))
+        y_PG = np.append(y_PG, np.array(logger[5]))        
+        y_SoC = np.append(y_SoC, np.array(logger[6]))
+        y_SoCMin = np.append(y_SoCMin, np.array(logger[7]))
             
         update_figs(i,axs)
-        return x_time, y_PCon, y_PPV, y_Pbat, y_PG, y_SoC, y_SoCMin, i
+        return x_time, y_PCon, y_PPV, y_PInv, y_Pbat, y_PG, y_SoC, y_SoCMin, i
     except Exception as e:
         print(f"ultima linha {e}")
-        return x_time, y_PCon, y_PPV, y_Pbat, y_PG, y_SoCMin, i
+        return x_time, y_PCon, y_PPV, y_PInv, y_Pbat, y_PG, y_SoCMin, i
     
 ###-------------------------------------------------------------------###
 ##--------------------- Execute the program screen --------------------##
@@ -106,6 +107,7 @@ def write_to_csv(data,file_name,header):
                             'AT': float(data["AT"]),
                             'PCon': float(data["PCon"]),
                             'PPV': float(data["PPV"]),
+                            'PInv': float(data["PInv"]),
                             'Pbat': float(data["Pbat"]),
                             'PG': float(data["PG"]),
                             'SoC': float(data["SoC"]),
@@ -133,6 +135,7 @@ def update_figs(i,axs):
     
     axs[1].cla()
     axs[1].plot(x_time,-y_Pbat, label = 'Battery Power Transit')
+    axs[1].plot(x_time,y_PInv, label = 'Inverter Power')
     axs[1].plot(x_time,y_PG, label = 'Grid Power')
     axs[1].legend()
     axs[1].grid(color='k', linestyle='--', linewidth=0.5)
@@ -244,6 +247,7 @@ if __name__ == "__main__":
     ###-------------------------------------------------------------------###
 
     HOST = '192.168.7.2' #It is possible that you need to change this IP Address
+    #HOST = socket.gethostname()
     PORT = 50000
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -281,6 +285,8 @@ if __name__ == "__main__":
         y_PCon = [] 
 
         y_PPV = []
+
+        y_PInv = []
 
         y_Pbat = []
 
